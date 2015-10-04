@@ -5,6 +5,7 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <pthread.h>
+#include <unistd.h>
 #include "defines.h"
 
 void error(char *msg);
@@ -13,7 +14,7 @@ void *connection_handler(void *);
 
 int main(int argc, char const *argv[])
 {
-    int sockfd, newsockfd, portno, clilen, n;
+    int sockfd, newsockfd, portno, clilen;
     struct sockaddr_in serv_addr, cli_addr;
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0)
@@ -55,7 +56,12 @@ void *connection_handler(void *socket_desc)
 {
     int sock = *(int*)socket_desc;
     int read_size;
+    char command[COMMANDLEN];
 
+    read_size = read(sock, command, COMMANDLEN - 1);
+    if (read_size < 0)
+        error("ERROR reading from socket");
 
+    pthread_exit(NULL);
 }
 

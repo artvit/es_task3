@@ -6,5 +6,6 @@
 #define TASK3_DEFINES_H
 
 #define PORTNO 44444
+#define COMMANDLEN 256
 
 #endif //TASK3_DEFINES_H
