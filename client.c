@@ -38,16 +38,21 @@ int main(int argc, char const *argv[])
           server->h_length);
     serv_addr.sin_port = htons(portno);
 
-    if (connect(sockfd,&serv_addr,sizeof(serv_addr)) < 0)
+    if (connect(sockfd, &serv_addr, sizeof(serv_addr)) < 0)
         error("ERROR connecting");
 
 	while (true) {
-		printf("Enter command:");
-        bzero(buffer, COMMANDLEN);
-        fgets(buffer,COMMANDLEN - 1,stdin);
+        char buf[CLIENT_RESP_LEN];
+
+        printf("Enter command:");
+        bzero(buffer, COMMAND_LEN);
+        fgets(buffer, COMMAND_LEN - 1,stdin);
         n = write(sockfd,buffer,strlen(buffer));
         if (n < 0)
             error("ERROR writing to socket");
+
+        while (read(sockfd, buf, sizeof(buf)-1))
+            printf("%s", buf);
 	}
 	return 0;
 }

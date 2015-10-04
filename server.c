@@ -56,9 +56,9 @@ void *connection_handler(void *socket_desc)
 {
     int sock = *(int*)socket_desc;
     int read_size;
-    char command[COMMANDLEN];
+    char command[COMMAND_LEN];
 
-    read_size = read(sock, command, COMMANDLEN - 1);
+    read_size = read(sock, command, COMMAND_LEN - 1);
     if (read_size < 0)
         error("ERROR reading from socket");
 
