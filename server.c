@@ -1,12 +1,12 @@
+#define PROC
+
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
 #include <pthread.h>
 #include <unistd.h>
-#include <stdbool.h>
 #include "defines.h"
 
 void error(char *msg);
@@ -34,14 +34,24 @@ int main(int argc, char const *argv[])
     listen(sockfd,5);
 
     clilen = sizeof(cli_addr);
-    while(!(newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen)) < 0)
-    {
+    while ((newsockfd = accept(sockfd, (struct sockaddr*)&cli_addr, &clilen))) {
+#ifndef PROC
         pthread_t thread_id;
-        if( pthread_create( &thread_id , NULL ,  connection_handler , (void*) &newsockfd) < 0)
-         error("could not create thread");
+        if (pthread_create(&thread_id, NULL,  connection_handler, (void*) &newsockfd) < 0)
+            error("could not create thread");
+        //pthread_join(thread_id, NULL);
+#else
+        int pid = fork();
+        if (pid < 0) { // error occurred
+            error("Fork ERROR!");
+        } else if (pid == 0) { // child process
+            connection_handler((void*)&newsockfd);
+            exit(0);
+        }
+#endif
     }
 
-
+    shutdown(sockfd, 2);
     return 0;
 }
 
@@ -75,6 +85,7 @@ void *connection_handler(void *socket_desc)
             write(sock, path, strlen(path));
         }
 
+        shutdown(sock, 1);
         pclose(fp);
     }
     pthread_exit(NULL);

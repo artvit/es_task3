@@ -26,14 +26,11 @@ int main(int argc, char const *argv[])
 
     server = gethostbyname("127.0.0.1");
     if (server == NULL)
-    {
-        fprintf(stderr,"ERROR, no such host");
-        exit(0);
-    }
+        error("ERROR, no such host");
 
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    bcopy((char *)server->h_addr,
+    bcopy(server->h_addr,
           (char *)&serv_addr.sin_addr.s_addr,
           server->h_length);
     serv_addr.sin_port = htons(portno);
@@ -41,19 +38,18 @@ int main(int argc, char const *argv[])
     if (connect(sockfd, &serv_addr, sizeof(serv_addr)) < 0)
         error("ERROR connecting");
 
-	while (true) {
-        char buf[CLIENT_RESP_LEN];
+    char buf[CLIENT_RESP_LEN];
 
-        printf("Enter command:");
-        bzero(buffer, COMMAND_LEN);
-        fgets(buffer, COMMAND_LEN - 1,stdin);
-        n = write(sockfd,buffer,strlen(buffer));
-        if (n < 0)
-            error("ERROR writing to socket");
+    printf("Enter command:");
+    bzero(buffer, COMMAND_LEN);
+    fgets(buffer, COMMAND_LEN - 1, stdin);
+    n = write(sockfd, buffer, strlen(buffer));
+    if (n < 0)
+        error("ERROR writing to socket");
 
-        while (read(sockfd, buf, sizeof(buf)-1))
-            printf("%s", buf);
-	}
+    while (read(sockfd, buf, sizeof(buf)-1) > 0)
+        printf("%s", buf);
+    shutdown(sockfd, 2);
 	return 0;
 }
 
